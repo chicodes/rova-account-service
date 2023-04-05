@@ -1,21 +1,23 @@
+FROM public.ecr.aws/docker/library/maven:3.6-jdk-11-slim AS build
 
-COPY pom.xml /app/
-RUN mvn dependency:go-offline
+COPY pom.xml /app
 
-COPY src/main /app/src/main/
-COPY src/test /app/src/test/
+COPY src/main /app/src
+
 
 WORKDIR /app
 RUN mvn clean install -DskipTests
 
-FROM openjdk:11-jre-slim
+#
+# Package stage
+#
 
-RUN apt-get update && apt-get install -y curl
+FROM public.ecr.aws/docker/library/openjdk:11-jre-slim
 
 WORKDIR /app
 
-COPY --from=build /app/target/medusa_merchant-0.0.1-SNAPSHOT.jar portal.jar
+COPY --from=build /app/target/accountservice-0.0.1-SNAPSHOT.jar accountservice.jar
 
 EXPOSE 1837
 
-ENTRYPOINT ["java","-jar","portal.jar"]
+ENTRYPOINT ["java","-jar","accountservice.jar"]
