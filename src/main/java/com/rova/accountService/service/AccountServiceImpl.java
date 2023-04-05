@@ -83,18 +83,11 @@ public class AccountServiceImpl implements AccountService {
                         .withDelaySeconds(5);
                 amazonSQS.sendMessage(send_msg_request);
                 return responseHelper.getResponse(SUCCESS_CODE, SUCCESS, account, HttpStatus.CREATED);
-//                Response response = httpClient.post(getHeader(), jsonRequest, url);
-//                String responseBody = response.body().string();
-//                log.info("Plain Transaction Response: {}", responseBody);
-//                TransactionResponseDto transactionResponseDto = gson.fromJson(responseBody, TransactionResponseDto.class);
-//                log.info("Transaction Response: {}", transactionResponseDto);
-//                if(transactionResponseDto.getRespCode().equals("00"))
-//                    return responseHelper.getResponse(SUCCESS_CODE, SUCCESS, account, HttpStatus.CREATED);
             }
             return responseHelper.getResponse(FAILED_CODE, FAILED, null, HttpStatus.EXPECTATION_FAILED);
         }
         catch (Exception e) {
-            return responseHelper.getResponse(FAILED_CODE, FAILED, e.getStackTrace(), HttpStatus.EXPECTATION_FAILED);
+            return responseHelper.getResponse(FAILED_CODE, FAILED, e.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
     }
 

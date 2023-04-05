@@ -1,6 +1,7 @@
 package com.rova.accountService.service;
 
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.rova.accountService.dto.GetUserResponse;
 import com.rova.accountService.dto.RevoResponse;
@@ -10,6 +11,7 @@ import com.rova.accountService.exception.ResourceNotFoundException;
 import com.rova.accountService.http.HttpClient;
 import com.rova.accountService.model.User;
 import com.rova.accountService.repository.UserRepository;
+import com.rova.accountService.util.HttpCall;
 import com.rova.accountService.util.ResponseHelper;
 import com.rova.accountService.util.Utility;
 import lombok.RequiredArgsConstructor;
@@ -33,15 +35,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ResponseHelper responseHelper;
-    private final HttpClient httpClient;
+    private final HttpCall httpCall;
+
     @Value("${transactionServiceUrl}")
     private String transactionServiceUrl;
 
-    @Value("${sqs.transaction.queue.url}")
-    private String sqsUrl;
-
-    private final AmazonSQS amazonSQS;
-
+    private final HttpClient httpClient;
     private final Gson gson;
 
     @Override
@@ -51,7 +50,6 @@ public class UserServiceImpl implements UserService {
             User checkUserExist = userRepository.findByEmail(request.getEmail());
             if(!Objects.isNull(checkUserExist))
                 throw  new ResourceNotFoundException("User with email already exist");
-
 
             User user = new User();
             user.setFirstName(request.getFirstName());
@@ -88,26 +86,20 @@ public class UserServiceImpl implements UserService {
             map.put("token", "test");
             String url = transactionServiceUrl + "/customer/" + id;
             log.info("URL: {}", url);
-            Response response = httpClient.get(getHeader(), map, url);
-            String responseBody = response.body().string();
-            log.info("Plain Transaction Response: {}", responseBody);
-            TransactionResponseDto transactionResponseDto = gson.fromJson(responseBody, TransactionResponseDto.class);
-            log.info("Transaction Response: {}", transactionResponseDto);
+            String response = httpCall.external(id, map, url);
+            log.info("Plain Transaction Response: {}", response);
+            TransactionResponseDto transactionResponseDto = gson.fromJson(response, TransactionResponseDto.class);
+            ObjectMapper objectMapper = new ObjectMapper();
+            log.info("Transaction Response: {}", objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(transactionResponseDto));
             if (transactionResponseDto.getRespCode().equals("00")){
                 getUserResponse.setTransactions(transactionResponseDto.getRespBody().getContent());
-                return responseHelper.getResponse(SUCCESS_CODE, SUCCESS, getUserResponse, HttpStatus.CREATED);
+                return responseHelper.getResponse(SUCCESS_CODE, SUCCESS, getUserResponse, HttpStatus.OK);
             }
             return responseHelper.getResponse(FAILED_CODE, FAILED, null, HttpStatus.EXPECTATION_FAILED);
         }
         catch (Exception e){
             return responseHelper.getResponse(FAILED_CODE, FAILED, e.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
-    }
 
-    private Map<String, String> getHeader(){
-        return Map.of(
-                "Content-Type", "application/json; charset=utf-8",
-                "Accept", "application/json"
-        );
     }
 }
