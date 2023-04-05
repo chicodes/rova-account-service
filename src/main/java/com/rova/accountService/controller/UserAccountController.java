@@ -1,9 +1,7 @@
 package com.rova.accountService.controller;
 
-import com.rova.accountService.dto.AccountResponse;
-import com.rova.accountService.dto.CreateAccountRequestDto;
+import com.rova.accountService.dto.RevoResponse;
 import com.rova.accountService.dto.CreateUserRequestDto;
-import com.rova.accountService.service.AccountService;
 import com.rova.accountService.service.UserService;
 import com.rova.accountService.util.Constants;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +20,14 @@ public class UserAccountController {
 
     private final UserService createUser;
     @PostMapping("")
-    public ResponseEntity<AccountResponse> addUser(@RequestBody CreateUserRequestDto request){
-        AccountResponse  resp = createUser.createUser(request);
+    public ResponseEntity<RevoResponse> addUser(@RequestBody CreateUserRequestDto request){
+        RevoResponse resp = createUser.createUser(request);
+        return new ResponseEntity<>(resp, resp.getHttpStatus());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<RevoResponse> getUserInfo(@PathVariable String id){
+        RevoResponse resp = createUser.getUserInfo(id);
         return new ResponseEntity<>(resp, resp.getHttpStatus());
     }
 }

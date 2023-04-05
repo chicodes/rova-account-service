@@ -1,6 +1,6 @@
 package com.rova.accountService.controller;
 
-import com.rova.accountService.dto.AccountResponse;
+import com.rova.accountService.dto.RevoResponse;
 import com.rova.accountService.dto.CreateAccountRequestDto;
 import com.rova.accountService.service.AccountService;
 import com.rova.accountService.util.Constants;
@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @Validated
 @RequiredArgsConstructor
-@RequestMapping(Constants.BASE_URL+"/account")
-public class CurrentAccountController {
+@RequestMapping(Constants.BASE_URL+"/bankAccount")
+public class BankAccountController {
 
     private final AccountService accountService;
     @PostMapping("")
-    public ResponseEntity<AccountResponse> addCurrentAccount(@RequestBody CreateAccountRequestDto request){
-        AccountResponse  resp = accountService.createCurrentAccount(request);
+    public ResponseEntity<RevoResponse> addCurrentAccount(@RequestBody CreateAccountRequestDto request){
+        RevoResponse resp = accountService.createCurrentAccount(request);
         return new ResponseEntity<>(resp, resp.getHttpStatus());
     }
 }
