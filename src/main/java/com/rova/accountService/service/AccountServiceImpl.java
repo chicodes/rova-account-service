@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.rova.accountService.util.Constants.*;
@@ -56,6 +57,11 @@ public class AccountServiceImpl implements AccountService {
                 log.info("User with Customer ID {} does not exist", request.getCustomerId());
                 throw new ResourceNotFoundException("User with Customer ID does not exist");
             }
+
+            //check if current account has already been opened for this user
+            Account checkAccountExist = accountRepository.findByCustomerId(request.getCustomerId());
+            if(Objects.isNull(checkAccountExist))
+                throw new ResourceNotFoundException("This user already has a current account");
 
             Account account = new Account();
             Integer accountNumber = Utility.generateRandomDigits(10);
